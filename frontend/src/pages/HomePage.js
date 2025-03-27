@@ -1,39 +1,84 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { getTasks, deleteTask } from '../services/api';
+import '../styles.css';
 
-
-function HomePage() {
+const HomePage = () => {
   const [tasks, setTasks] = useState([]);
 
+  // Fetch tasks from the server
   useEffect(() => {
     const fetchTasks = async () => {
-      const response = await getTasks();
-      setTasks(response.data);
+      try {
+        const response = await getTasks();
+        setTasks(response.data);
+      } catch (error) {
+        console.error('Error fetching tasks:', error);
+      }
     };
     fetchTasks();
   }, []);
 
-  const handleDelete = async (id) => {
-    await deleteTask(id);
-    setTasks(tasks.filter((task) => task._id !== id));
+  // Handle task deletion
+  const handleDelete = async (taskId) => {
+    try {
+      await deleteTask(taskId);
+      setTasks(tasks.filter((task) => task.id !== taskId));
+      alert('Task deleted successfully');
+    } catch (error) {
+      console.error('Error deleting task:', error);
+      alert('Failed to delete task');
+    }
   };
 
   return (
-    <div>
-      <h1>Task List</h1>
-      <Link to="/add">Add New Task</Link>
-      <ul>
-        {tasks.map((task) => (
-          <li key={task._id}>
-            {task.name} - {task.description}
-            <button onClick={() => handleDelete(task._id)}>Delete</button>
-            <Link to={`/edit/${task._id}`}>Edit</Link>
-          </li>
-        ))}
-      </ul>
+    <div className="container">
+      <nav className="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+        <Link className="navbar-brand" to="/">Task Management</Link>
+        <div className="collapse navbar-collapse">
+          <ul className="navbar-nav ml-auto">
+            <li className="nav-item">
+              <Link className="nav-link" to="/add">Add Task</Link>
+            </li>
+          </ul>
+        </div>
+      </nav>
+
+      <h2 className="text-center mb-4">Task List</h2>
+      <table className="table table-striped">
+        <thead className="thead-dark">
+          <tr>
+            <th>Task Name</th>
+            <th>Description</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {tasks.length > 0 ? (
+            tasks.map((task) => (
+              <tr key={task.id}>
+                <td>{task.name}</td>
+                <td>{task.description}</td>
+                <td>
+                  <Link to={`/edit/${task.id}`} className="btn btn-primary btn-sm mr-2">Edit</Link>
+                  <button
+                    className="btn btn-danger btn-sm"
+                    onClick={() => handleDelete(task.id)}
+                  >
+                    Delete
+                  </button>
+                </td>
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td colSpan="3" className="text-center">No tasks found</td>
+            </tr>
+          )}
+        </tbody>
+      </table>
     </div>
   );
-}
-
+};
 export default HomePage;
+
